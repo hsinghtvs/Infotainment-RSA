@@ -113,6 +113,7 @@ var listOfProcessExcuted = ArrayList<Int>()
 var processStart by mutableStateOf(false)
 var listOfServiceTimeKey = mutableStateListOf<String>()
 var listOfServiceTimeValue = mutableStateListOf<String>()
+var intentIssue by mutableStateOf("")
 
 class MainActivity : ComponentActivity(), OnMapReadyCallback {
     private var currentLocation: Location? = null
@@ -127,7 +128,15 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
+                   if (intent.getStringExtra("service") != null) {
+                        intentIssue = intent.getStringExtra("service").toString()
+                    } else {
+
+                    }
                     listOfIssues.clear()
+                    if (!intentIssue.isEmpty()) {
+                        listOfIssues.add(intentIssue)
+                    }
                     listOfIssues.add("Accident")
                     listOfIssues.add("Battery Discharged")
                     listOfIssues.add("Break Problem")
@@ -138,6 +147,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                     listOfIssues.add("Engine OverHeating")
                     listOfIssues.add("BreakDown")
                     listOfIssues.add("Fuel Type")
+
 
                     listOfServiceTimeKey.clear()
                     listOfServiceTimeKey.add("Hang in there!")
@@ -287,7 +297,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
             LatLng(
                 lattiude, longitutde
             )
-        ).zoom(22.0).tilt(0.0).build()
+        ).zoom(15.0).tilt(0.0).build()
         mapplsMap.cameraPosition = cameraPosition
 
         // get Location Address
@@ -496,24 +506,33 @@ fun issueBox(index: Int, issue: String) {
         AlertDialog(
             onDismissRequest = { openDialog = false },
             confirmButton = {
-                Button(onClick = { openDialog = false }) {
+                Button(onClick = {
+                    selectedIndex = index
+                    executed = false
+                    processIndex = 0
+                    processStart = false
+                    listOfProcessExcuted.clear()
+                    openDialog = false
+                }) {
                     Text("Confirm")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { openDialog = false }) {
-                    // adding text to our button.
                     Text("Dismiss")
                 }
             },
             icon = {
-                Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning Icon" )
+                Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning Icon")
             },
             title = {
                 Text(text = "Cant Select", color = Color.Black)
             },
             text = {
-                Text(text = "Once of the issue is already selected, Cancel That Before you select This", color = Color.DarkGray)
+                Text(
+                    text = "Once of the issue is already selected, Cancel That Before you select This",
+                    color = Color.DarkGray
+                )
             },
             modifier = Modifier.padding(16.dp),
             shape = RoundedCornerShape(16.dp),
@@ -596,6 +615,7 @@ fun MapBox(modifier: Modifier, mainActivity: MainActivity) {
                     ) {
                         Row {
                             Column(
+                                modifier = Modifier.weight(2f),
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Row(
@@ -634,13 +654,14 @@ fun MapBox(modifier: Modifier, mainActivity: MainActivity) {
                                 )
                             }
                             if (processIndex >= 2) {
-                                Spacer(modifier = Modifier.weight(1f))
                                 Column(
+                                    modifier = Modifier
+                                        .weight(1.4f)
+                                        .padding(horizontal = 10.dp),
                                     verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
                                         modifier = Modifier.padding(
-                                            horizontal = 30.dp,
                                             vertical = 10.dp
                                         ),
                                         text = "My Tvs Assistance",
@@ -653,9 +674,7 @@ fun MapBox(modifier: Modifier, mainActivity: MainActivity) {
                                         )
                                     )
                                     Text(
-                                        modifier = Modifier.padding(
-                                            horizontal = 30.dp,
-                                        ),
+                                        modifier = Modifier,
                                         text = buildAnnotatedString {
                                             append("Request ID : ")
                                             withStyle(
@@ -875,7 +894,9 @@ fun process(modifier: Modifier, listOfProcessExecuted: ArrayList<Int>) {
                                     bottom.linkTo(box.top)
                                     top.linkTo(parent.top)
                                 }
-                                .height((boxHeight / 4).dp)
+//                                .height((boxHeight / 4).dp)
+                                .height((boxHeight / 3).dp)
+
                                 .background(
                                     color = if (listOfProcessExcuted.contains(index - 1)) Color(
                                         0xFF34A443
@@ -905,7 +926,7 @@ fun process(modifier: Modifier, listOfProcessExecuted: ArrayList<Int>) {
                                     top.linkTo(parent.top)
                                     top.linkTo(box.bottom)
                                 }
-                                .height((boxHeight / 4).dp)
+                                .height((boxHeight / 3).dp)
                                 .background(
                                     if (listOfProcessExcuted.contains(index)) Color(
                                         0xFF34A443
