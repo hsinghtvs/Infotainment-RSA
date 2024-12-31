@@ -8,9 +8,11 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,12 +31,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,7 +47,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -55,9 +59,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -79,13 +86,16 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.example.infotainment_rsa.components.SelectAnIssue
 import com.example.infotainment_rsa.model.AddressModel
 import com.example.infotainment_rsa.ui.theme.InfotainmentRSATheme
+import com.example.infotainment_rsa.viewmodel.MainViewModel
 import com.google.gson.Gson
 import com.mappls.sdk.maps.MapView
 import com.mappls.sdk.maps.Mappls
 import com.mappls.sdk.maps.MapplsMap
 import com.mappls.sdk.maps.OnMapReadyCallback
+import com.mappls.sdk.maps.annotations.Marker
 import com.mappls.sdk.maps.annotations.MarkerOptions
 import com.mappls.sdk.maps.camera.CameraPosition
 import com.mappls.sdk.maps.geometry.LatLng
@@ -100,20 +110,22 @@ import java.io.IOException
 import java.text.DecimalFormat
 import java.util.Calendar
 
-
 var lattiude by mutableDoubleStateOf(0.00)
 var longitutde by mutableDoubleStateOf(0.00)
-var selectedIndex by mutableIntStateOf(0)
+var selectedIndex by mutableIntStateOf(-1)
 var areaName by mutableStateOf("")
 var address by mutableStateOf("")
 var listOfIssues = mutableStateListOf<String>()
+var listOfIssuesImage = mutableStateListOf<Int>()
 var executed by mutableStateOf(false)
+var mapIsReady by mutableStateOf(false)
 var processIndex by mutableStateOf(0)
 var listOfProcessExcuted = ArrayList<Int>()
 var processStart by mutableStateOf(false)
 var listOfServiceTimeKey = mutableStateListOf<String>()
 var listOfServiceTimeValue = mutableStateListOf<String>()
 var intentIssue by mutableStateOf("")
+var intenissueAdded by mutableStateOf(false)
 
 class MainActivity : ComponentActivity(), OnMapReadyCallback {
     private var currentLocation: Location? = null
@@ -123,30 +135,47 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val viewModel: MainViewModel by viewModels<MainViewModel>()
             InfotainmentRSATheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
-                   if (intent.getStringExtra("service") != null) {
+                    if (intent.getStringExtra("service") != null) {
                         intentIssue = intent.getStringExtra("service").toString()
                     } else {
 
                     }
                     listOfIssues.clear()
+                    listOfIssuesImage.clear()
+
                     if (!intentIssue.isEmpty()) {
                         listOfIssues.add(intentIssue)
+                        listOfIssuesImage.add(R.drawable.accident)
+                        selectedIndex = 0
+//                        executed = false
+//                        processIndex = 0
+//                        processStart = false
+//                        listOfProcessExcuted.clear()
+                        intenissueAdded = true
                     }
                     listOfIssues.add("Accident")
-                    listOfIssues.add("Battery Discharged")
-                    listOfIssues.add("Break Problem")
-                    listOfIssues.add("Clutch Problem")
-                    listOfIssues.add("Coolant Leakage")
-                    listOfIssues.add("Fuel Problem")
+                    listOfIssues.add("Battery Jump Start")
+                    listOfIssues.add("Clutch/Break Problem")
                     listOfIssues.add("Lost/ Loacked Keys")
-                    listOfIssues.add("Engine OverHeating")
+                    listOfIssues.add("Flat Tyre")
+                    listOfIssues.add("Fuel Problem")
                     listOfIssues.add("BreakDown")
-                    listOfIssues.add("Fuel Type")
+                    listOfIssues.add("Engine OverHeating")
+
+                    listOfIssuesImage.add(R.drawable.accident)
+                    listOfIssuesImage.add(R.drawable.battery)
+                    listOfIssuesImage.add(R.drawable.clutch_brake)
+                    listOfIssuesImage.add(R.drawable.lost_keys)
+                    listOfIssuesImage.add(R.drawable.flat_tyre)
+                    listOfIssuesImage.add(R.drawable.fuel_probelm)
+                    listOfIssuesImage.add(R.drawable.accident)
+                    listOfIssuesImage.add(R.drawable.engine_overheat)
 
 
                     listOfServiceTimeKey.clear()
@@ -240,11 +269,8 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                                 listOfProcessExcuted.add(processIndex)
                                 processIndex++;
                                 if (processIndex == 4) {
-                                    listOfProcessExcuted.clear()
-                                    processIndex = 0
+                                    processIndex = 3
                                     processStart = false
-                                    executed = false
-                                    listOfProcessExcuted.add(3)
                                 }
                             }
                         }
@@ -262,23 +288,30 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                             )
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Row(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            issueSelection(
-                                Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            MapBox(
-                                Modifier.weight(1f), this@MainActivity
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            selectedIssue(
-                                modifier = Modifier.weight(1f), executed,
-                                listOfProcessExcuted
-                            )
+
+                        if (selectedIndex != -1) {
+                            Row(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                issueSelection(
+                                    Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.size(5.dp))
+                                MapBox(
+                                    Modifier.weight(1f), this@MainActivity
+                                )
+                                Spacer(modifier = Modifier.size(5.dp))
+                                selectedIssue(
+                                    modifier = Modifier.weight(1f), executed,
+                                    listOfProcessExcuted
+                                )
+                            }
+                        } else {
+                            SelectAnIssue(modifier = Modifier.fillMaxSize()) {
+                                selectedIndex = it
+                            }
                         }
                     }
                 }
@@ -289,10 +322,47 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
     override fun onMapReady(mapplsMap: MapplsMap) {
         val latLong: LatLng = LatLng(lattiude, longitutde)
         val markerOptions: MarkerOptions = MarkerOptions().position(latLong)
+        var markerAdded by mutableStateOf(false)
         markerOptions.title = areaName
         markerOptions.snippet = address
-        mapplsMap?.addMarker(markerOptions)
+        val markers = mapplsMap.markers
+        if (markers.size > 0) {
+            for (i in 0 until markers.size) {
+                if (markers[i].title == areaName) {
+                    markerAdded = true
+                }
+            }
+        }
+        if (!markerAdded && areaName.isNotEmpty()) {
+            mapplsMap?.addMarker(markerOptions)
+        }
 
+
+        val latLongTechnician: LatLng = LatLng(lattiude - 0.0005, longitutde)
+        val markerOptionsTechnician: MarkerOptions = MarkerOptions().position(latLongTechnician)
+        var TechnicianmarkerAdded by mutableStateOf(false)
+        if (processIndex >= 2) {
+            if (markers.size > 0) {
+                for (i in 0 until markers.size) {
+                    if (markers[i].title == "Technician") {
+                        TechnicianmarkerAdded = true
+                    }
+                }
+            }
+            if (!TechnicianmarkerAdded) {
+                markerOptionsTechnician.title = "Technician"
+                markerOptionsTechnician.snippet = "Technician address"
+                mapplsMap?.addMarker(markerOptionsTechnician)!!
+            }
+        } else {
+            if (markers.size > 0) {
+                for (i in 0 until markers.size) {
+                    if (markers[i].title == "Technician") {
+                        mapplsMap?.removeMarker(markers[i])
+                    }
+                }
+            }
+        }
         val cameraPosition = CameraPosition.Builder().target(
             LatLng(
                 lattiude, longitutde
@@ -305,8 +375,11 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
 
         val lattitudeFromated = precision.format(lattiude).toDouble()
         val longitudeFromated = precision.format(longitutde).toDouble()
-        getlocationAddress(lattitudeFromated, longitudeFromated)
+        if (areaName.isEmpty()) {
+            getlocationAddress(lattitudeFromated, longitudeFromated)
+        }
 
+        // Not to Uncomment
 //        val reverseGeoCode =
 //            MapplsReverseGeoCode.builder().setLocation(lattiude, longitutde).build()
 //        MapplsReverseGeoCodeManager.newInstance(reverseGeoCode)
@@ -330,9 +403,10 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
     }
 
     private fun getlocationAddress(lattiude: Double, longitutde: Double) {
+        Log.d("Sudarshan API CALL ", "call APi")
         val okHttpClient = OkHttpClient()
         val request = Request.Builder()
-            .url("https://apis.mappls.com/advancedmaps/v1/e1d6c41b7850e2e03f8c1e18edd9ccd7/rev_geocode?lat=${lattiude}&lng=$longitutde")
+            .url("https://apis.mappls.com/advancedmaps/v1/4a0bbbe5ab800eca852f98bc67c7313b/rev_geocode?lat=${12.8946721}&lng=${77.60990}")
             .build()
 
         okHttpClient.newCall(request).enqueue(object : Callback {
@@ -437,10 +511,8 @@ fun issueSelection(modifier: Modifier) {
 
         val callGradient = Brush.verticalGradient(
             listOf(
-                Color(37, 245, 61, 74),
-                Color(37, 245, 61, 74),
-                Color(37, 245, 61, 74),
-                Color(9, 15, 38, 6)
+                Color(44, 44, 44, 100),
+                Color(236, 254, 238, 6)
             )
         )
 
@@ -477,7 +549,11 @@ fun issueSelection(modifier: Modifier) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painter = painterResource(id = R.drawable.call), contentDescription = "")
+                    Icon(
+                        painter = painterResource(id = R.drawable.call),
+                        contentDescription = "",
+                        tint = Color.White
+                    )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
                         text = "1800056743", style = TextStyle(
@@ -489,7 +565,10 @@ fun issueSelection(modifier: Modifier) {
         }
 
         Spacer(modifier = Modifier.size(10.dp))
-        LazyColumn() {
+        LazyVerticalStaggeredGrid(
+            modifier = Modifier.fillMaxWidth(),
+            columns = StaggeredGridCells.Fixed(3)
+        ) {
             itemsIndexed(listOfIssues) { index, issue ->
                 issueBox(index, issue)
             }
@@ -499,7 +578,7 @@ fun issueSelection(modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun issueBox(index: Int, issue: String) {
+private fun issueBox(index: Int, issue: String) {
     var openDialog by remember { mutableStateOf(false) }
 
     if (openDialog) {
@@ -546,6 +625,7 @@ fun issueBox(index: Int, issue: String) {
     }
 
     Box(modifier = Modifier
+        .size(150.dp)
         .fillMaxWidth()
         .clickable {
             if (processIndex == 0) {
@@ -557,24 +637,51 @@ fun issueBox(index: Int, issue: String) {
                 openDialog = true
             }
         }
-        .padding(horizontal = 20.dp, vertical = 5.dp)
+        .padding(horizontal = 10.dp, vertical = 5.dp)
         .background(color = Color(0xFF1D3354), shape = RoundedCornerShape(10.dp))
         .border(
             width = 1.dp, color = if (selectedIndex == index) {
-                Color(0xFF1F57E7)
+                Color(0xFF3DED4F)
             } else {
                 Color.Transparent
             }, shape = RoundedCornerShape(10.dp)
-        )
-        .padding(10.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+        )) {
+        if (selectedIndex == index) {
+            Image(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .align(Alignment.TopEnd)
+                    .size(15.dp),
+                painter = painterResource(id = R.drawable.circle_tick),
+                contentDescription = ""
+            )
+
+        } else {
+            Spacer(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .align(Alignment.TopEnd)
+                    .size(15.dp)
+                    .background(color = Color(0xFF0B1112), shape = CircleShape)
+            )
+        }
+        Column(
+            modifier = Modifier.padding(top = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(painter = painterResource(id = R.drawable.accident), contentDescription = "")
-            Spacer(modifier = Modifier.size(10.dp))
+            Image(
+                modifier = Modifier.size(70.dp),
+                painter = painterResource(id = listOfIssuesImage[index]),
+                contentDescription = "",
+                contentScale = ContentScale.FillBounds
+            )
             Text(
-                modifier = Modifier.padding(10.dp), text = issue, style = TextStyle(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 10.dp)
+                    .fillMaxWidth(),
+                text = issue, style = TextStyle(
                     color = Color.White,
+                    textAlign = TextAlign.Center
                 )
             )
         }
@@ -592,6 +699,7 @@ fun MapBox(modifier: Modifier, mainActivity: MainActivity) {
         )
         Spacer(modifier = Modifier.size(10.dp))
         Box(modifier = Modifier) {
+//            if(!mapIsReady) {
             MapComponent(
                 mainActivity = mainActivity,
                 modifier = Modifier
@@ -599,10 +707,14 @@ fun MapBox(modifier: Modifier, mainActivity: MainActivity) {
                         color = Color.Transparent, shape = RoundedCornerShape(10.dp)
                     )
                     .border(
-                        width = 0.dp, shape = RoundedCornerShape(10.dp), color = Color.Transparent
+                        width = 0.dp,
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color.Transparent
                     )
             )
+//            }
             if (!areaName.isEmpty()) {
+                mapIsReady = true
                 Column(
                     verticalArrangement = Arrangement.Bottom,
                     modifier = Modifier.fillMaxHeight()
@@ -723,6 +835,13 @@ fun selectedIssue(
             Color(0xFF255AF5).copy(alpha = 0.7f),
         )
     )
+
+    val transparentGradient = Brush.verticalGradient(
+        listOf(
+            Color.Transparent,
+            Color.Transparent
+        )
+    )
     Column(modifier = modifier.padding(bottom = 10.dp)) {
         Text(
             modifier = Modifier.padding(10.dp), text = "Selected Issue", style = TextStyle(
@@ -741,22 +860,87 @@ fun selectedIssue(
                 .padding(10.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Image(
                     modifier = Modifier.size(40.dp),
-                    painter = painterResource(id = R.drawable.accident),
+                    painter = painterResource(id = listOfIssuesImage[selectedIndex]),
                     contentDescription = ""
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    modifier = Modifier,
+                    modifier = Modifier.weight(1f),
                     text = listOfIssues[selectedIndex],
                     style = TextStyle(
                         color = Color.White,
                         textAlign = TextAlign.Center
                     )
                 )
+                Row(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                            .background(
+                                brush = if (!executed) callGradient else transparentGradient,
+                                shape = RoundedCornerShape(
+                                    topStart = 30.dp,
+                                    topEnd = 30.dp,
+                                    bottomEnd = 30.dp,
+                                    bottomStart = 30.dp
+                                )
+
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (!executed) Color(0xFF3C4042) else Color.Transparent,
+                                shape = RoundedCornerShape(
+                                    topStart = 30.dp,
+                                    topEnd = 30.dp,
+                                    bottomEnd = 30.dp,
+                                    bottomStart = 30.dp
+                                )
+                            ), contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(5.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                                modifier = Modifier.clickable {
+                                    if (executed == false) {
+                                        executed = true
+                                    } else {
+                                        executed = false
+                                    }
+                                    if (processStart == false) {
+                                        processStart = true
+                                    } else {
+                                        processStart = false
+                                    }
+                                    if (!executed) {
+                                        selectedIndex = selectedIndex
+                                        executed = false
+                                        processIndex = 0
+                                        processStart = false
+                                        listOfProcessExcuted.clear()
+                                    }
+                                },
+                                text = if (!executed) "Confirm Request" else "Cancel Request",
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.metropolis))
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
         Column {
@@ -821,54 +1005,13 @@ fun selectedIssue(
             } else {
                 process(modifier = Modifier.weight(1f), listOfProcessExcuted)
             }
-            Row() {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                        .background(
-                            brush = callGradient, shape = RoundedCornerShape(
-                                topStart = 30.dp,
-                                topEnd = 30.dp,
-                                bottomEnd = 30.dp,
-                                bottomStart = 30.dp
-                            )
-
-                        )
-                        .border(
-                            width = 1.dp, color = Color(0xFF3C4042), shape = RoundedCornerShape(
-                                topStart = 30.dp,
-                                topEnd = 30.dp,
-                                bottomEnd = 30.dp,
-                                bottomStart = 30.dp
-                            )
-                        ), contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        modifier = Modifier.padding(5.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            modifier = Modifier.clickable {
-                                executed = !executed
-                                processStart = !processStart
-                            },
-                            text = if (!executed) "Confirm Request" else "Cancel Request",
-                            style = TextStyle(
-                                color = Color.White,
-                                fontFamily = FontFamily(Font(R.font.metropolis))
-                            )
-                        )
-                    }
-                }
-            }
         }
     }
 }
 
 @Composable
 fun process(modifier: Modifier, listOfProcessExecuted: ArrayList<Int>) {
+    val context = LocalContext.current
     var boxHeight by remember {
         mutableIntStateOf(0)
     }
@@ -881,67 +1024,131 @@ fun process(modifier: Modifier, listOfProcessExecuted: ArrayList<Int>) {
             itemsIndexed(listOfServiceTimeKey) { index, item ->
                 Row(
                     modifier = Modifier.padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     ConstraintLayout(
-                        modifier = Modifier.fillMaxHeight(),
+                        modifier = Modifier
+                            .fillMaxHeight()
                     ) {
                         val (box, spacer1, spacer2) = createRefs()
-                        if (index !== 0) {
-                            Spacer(modifier = Modifier
+                        if (index != 0) {
+                            Canvas(modifier = Modifier
                                 .constrainAs(spacer1) {
                                     start.linkTo(parent.start)
                                     end.linkTo(parent.end)
                                     bottom.linkTo(box.top)
                                     top.linkTo(parent.top)
                                 }
-//                                .height((boxHeight / 4).dp)
-                                .height((boxHeight / 3).dp)
-
-                                .background(
-                                    color = if (listOfProcessExcuted.contains(index - 1)) Color(
-                                        0xFF34A443
-                                    ) else Color.LightGray
-                                )
-                                .width(1.dp))
-                        }
-                        Spacer(modifier = Modifier
-                            .constrainAs(box) {
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
-                                bottom.linkTo(parent.bottom)
-                                top.linkTo(parent.top)
+                                .height(((boxHeight / 2) + 21).dp)
+                                .width(1.dp)) {
+                                if (listOfProcessExcuted.contains(index) || processIndex == 3) {
+                                    drawLine(
+                                        color = Color(
+                                            0xFF34A443
+                                        ),
+                                        start = Offset(0f, 0f),
+                                        end = Offset(0f, size.height),
+                                        strokeWidth = 1f
+                                    )
+                                } else {
+                                    drawLine(
+                                        color = Color.LightGray,
+                                        start = Offset(0f, 0f),
+                                        end = Offset(0f, size.height),
+                                        pathEffect = PathEffect.dashPathEffect(
+                                            floatArrayOf(10f, 10f),
+                                            0f
+                                        )
+                                    )
+                                }
                             }
-                            .size(10.dp)
-                            .background(
-                                color = if (listOfProcessExcuted.contains(index - 1) || (processIndex > -1 && index == 0)) Color(
-                                    0xFF34A443
-                                ) else Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            ))
-                        if (index != 3) {
+                        }
+                        if (listOfProcessExcuted.contains(index)) {
+                            Image(
+                                modifier = Modifier
+                                    .constrainAs(box) {
+                                        start.linkTo(parent.start)
+                                        end.linkTo(parent.end)
+                                        bottom.linkTo(parent.bottom)
+                                        top.linkTo(parent.top)
+                                    }
+                                    .size(10.dp)
+                                    .background(
+                                        color = Color.LightGray,
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                painter = painterResource(id = R.drawable.circle_tick),
+                                contentDescription = "")
+                        } else if (processIndex == index) {
+                            Image(
+                                modifier = Modifier
+                                    .constrainAs(box) {
+                                        start.linkTo(parent.start)
+                                        end.linkTo(parent.end)
+                                        bottom.linkTo(parent.bottom)
+                                        top.linkTo(parent.top)
+                                    }
+                                    .size(10.dp)
+                                    .background(
+                                        color = Color.LightGray,
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                painter = painterResource(id = R.drawable.processing),
+                                contentDescription = "")
+                        } else {
                             Spacer(modifier = Modifier
-                                .constrainAs(spacer2) {
+                                .constrainAs(box) {
                                     start.linkTo(parent.start)
                                     end.linkTo(parent.end)
+                                    bottom.linkTo(parent.bottom)
                                     top.linkTo(parent.top)
-                                    top.linkTo(box.bottom)
                                 }
-                                .height((boxHeight / 3).dp)
+                                .size(10.dp)
                                 .background(
-                                    if (listOfProcessExcuted.contains(index)) Color(
-                                        0xFF34A443
-                                    ) else Color.LightGray
-                                )
-                                .width(1.dp))
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                ))
+                        }
+                        if (index != 3) {
+                            Canvas(
+                                modifier = Modifier
+                                    .constrainAs(spacer2) {
+                                        start.linkTo(parent.start)
+                                        end.linkTo(parent.end)
+                                        top.linkTo(parent.top)
+                                        top.linkTo(box.bottom)
+                                    }
+                                    .fillMaxHeight()
+                                    .height(((boxHeight / 2) + 20).dp)
+                                    .width(1.dp)
+                            ) {
+
+                                if (listOfProcessExcuted.contains(index)) {
+                                    drawLine(
+                                        color = if (listOfProcessExcuted.contains(index - 1) || (processIndex > -1 && index == 0) || processIndex == 3) Color(
+                                            0xFF34A443
+                                        ) else Color.LightGray,
+                                        start = Offset(0f, 0f),
+                                        end = Offset(0f, size.height),
+                                        strokeWidth = 1f
+                                    )
+                                } else {
+                                    drawLine(
+                                        color = Color.LightGray,
+                                        start = Offset(0f, 0f),
+                                        end = Offset(0f, size.height),
+                                        pathEffect = PathEffect.dashPathEffect(
+                                            floatArrayOf(10f, 10f),
+                                            0f
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                     Box(modifier = Modifier
-                        .onGloballyPositioned {
-                            boxHeight = it.size.height
-                        }
                         .fillMaxWidth()
                         .clickable {
-                            selectedIndex = index
                         }
                         .padding(horizontal = 20.dp, vertical = 5.dp)
                         .background(
@@ -955,6 +1162,9 @@ fun process(modifier: Modifier, listOfProcessExecuted: ArrayList<Int>) {
                             }, shape = RoundedCornerShape(10.dp)
                         )
                         .padding(10.dp)
+                        .onGloballyPositioned {
+                            boxHeight = (it.size.height / 2) - 10
+                        }
                     ) {
                         Column(
                         ) {
