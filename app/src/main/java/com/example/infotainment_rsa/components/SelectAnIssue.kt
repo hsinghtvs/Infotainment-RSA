@@ -112,12 +112,21 @@ fun SelectAnIssue(
                     )
                     var buttonGradient = Brush.verticalGradient(
                         listOf(
-                            Color(0xFF255AF5).copy(alpha = 1f),
-                            Color(0xFF090F26).copy(alpha = 1f),
+                            Color(0xFF18348E),
+                            Color(0xFF2A64E1),
+                        )
+                    )
+                    var buttonStroke = Brush.linearGradient(
+                        listOf(
+                            Color(0xFFFFFFFF).copy(alpha = 1f),
+                            Color(0xFFFFFFFF).copy(alpha = 0f),
+                            Color(0xFFFFFFFF).copy(alpha = 0f),
+                            Color(0xFFFFFFFF).copy(alpha = 1f)
                         )
                     )
                     Text(
                         modifier = Modifier
+                            .padding(10.dp)
                             .clickable {
                                 viewModel.intentIssue = "Battery Jump Start"
                                 if (!viewModel.intentIssue.isEmpty() && !viewModel.intenissueAdded) {
@@ -127,8 +136,15 @@ fun SelectAnIssue(
                                     viewModel.intenissueAdded = true
                                 }
                             }
-                            .padding(10.dp)
-                            .background(brush = buttonGradient, shape = RoundedCornerShape(20.dp))
+                            .background(
+                                color = Color(0xFFFFFFFF).copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .border(1.dp, brush = buttonStroke, shape = RoundedCornerShape(20.dp))
+                            .background(
+                                brush = buttonGradient,
+                                shape = RoundedCornerShape(20.dp)
+                            )
                             .padding(horizontal = 10.dp, vertical = 5.dp),
                         text = "Book RSA",
                         style = TextStyle(

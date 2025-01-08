@@ -172,14 +172,22 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                         }
                     }
 
-                    var backgroundGradient = Brush.linearGradient(
+
+                    var mainBackGroundGradient = Brush.linearGradient(
                         listOf(
-                            Color(0x33032B9D),
-                            Color(0x33040A1B)
+                            Color(0xFF040A2F),
+                            Color(0xFF060817)
                         )
                     )
 
-                    Box(modifier = Modifier.fillMaxSize().background(color = Color.Black)){
+                    var backgroundGradient = Brush.linearGradient(
+                        listOf(
+                            Color(0xFF040F36),
+                            Color(0xFF030A29)
+                        )
+                    )
+
+                    Box(modifier = Modifier.fillMaxSize().background(brush = mainBackGroundGradient)){
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()

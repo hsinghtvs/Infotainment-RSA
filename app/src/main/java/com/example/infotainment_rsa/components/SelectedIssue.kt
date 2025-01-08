@@ -115,10 +115,23 @@ fun selectedIssue(
                 Row(
                     modifier = Modifier.weight(1f)
                 ) {
+                    var buttonStroke = Brush.linearGradient(
+                        listOf(
+                            Color(0xFFFFFFFF).copy(alpha = 1f),
+                            Color(0xFFFFFFFF).copy(alpha = 0f),
+                            Color(0xFFFFFFFF).copy(alpha = 0f),
+                            Color(0xFFFFFFFF).copy(alpha = 1f)
+                        )
+                    )
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp)
+                            .background(
+                                color = Color(0xFFFFFFFF).copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .border(1.dp, brush = buttonStroke, shape = RoundedCornerShape(20.dp))
                             .background(
                                 brush = if (!viewModel.executed) callGradient else transparentGradient,
                                 shape = RoundedCornerShape(
@@ -128,17 +141,8 @@ fun selectedIssue(
                                     bottomStart = 30.dp
                                 )
 
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = if (!viewModel.executed) Color(0xFF3C4042) else Color.Transparent,
-                                shape = RoundedCornerShape(
-                                    topStart = 30.dp,
-                                    topEnd = 30.dp,
-                                    bottomEnd = 30.dp,
-                                    bottomStart = 30.dp
-                                )
-                            ), contentAlignment = Alignment.Center
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
                         Row(
                             modifier = Modifier.padding(5.dp),
