@@ -10,12 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -25,10 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -42,17 +37,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.example.infotainment_rsa.R
-import com.example.infotainment_rsa.executed
-import com.example.infotainment_rsa.listOfIssues
-import com.example.infotainment_rsa.listOfIssuesImage
-import com.example.infotainment_rsa.listOfProcessExcuted
-import com.example.infotainment_rsa.processIndex
-import com.example.infotainment_rsa.processStart
-import com.example.infotainment_rsa.selectedIndex
+import com.example.infotainment_rsa.viewmodel.MainViewModel
 
 @Composable
 fun SelectAnIssue(
     modifier: Modifier,
+    viewModel: MainViewModel,
     onClick: (Int) -> Unit
 ) {
     Column(
@@ -65,7 +55,90 @@ fun SelectAnIssue(
                 Color(236, 254, 238, 6)
             )
         )
-
+        Text(
+            modifier = Modifier
+                .padding(10.dp),
+            text = "We have identified an issue with your vehicle. Please book RSA for assistance.",
+            style = TextStyle(
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.manrope_extrabold))
+            )
+        )
+        Spacer(modifier = Modifier.size(10.dp))
+        Box(
+            modifier = Modifier
+                .height(100.dp)
+                .fillMaxWidth()
+        ) {
+            Image(
+                modifier = Modifier.fillMaxWidth(),
+                painter = painterResource(id = R.drawable.error_bg),
+                contentDescription = "",
+                contentScale = ContentScale.FillBounds
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .align(Alignment.Center)
+                    .padding(horizontal = 10.dp)
+            ) {
+                Image(
+                    modifier = Modifier.align(Alignment.Center),
+                    painter = painterResource(id = R.drawable.button_error_background),
+                    contentDescription = ""
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(id = R.drawable.battery__1_),
+                        contentDescription = "",
+                        contentScale = ContentScale.FillBounds
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(10.dp),
+                        text = "Battery Jump Start",
+                        style = TextStyle(
+                            color = Color.White,
+                            fontFamily = FontFamily(Font(R.font.manrope_extrabold))
+                        )
+                    )
+                    var buttonGradient = Brush.verticalGradient(
+                        listOf(
+                            Color(0xFF255AF5).copy(alpha = 1f),
+                            Color(0xFF090F26).copy(alpha = 1f),
+                        )
+                    )
+                    Text(
+                        modifier = Modifier
+                            .clickable {
+                                viewModel.intentIssue = "Battery Jump Start"
+                                if (!viewModel.intentIssue.isEmpty() && !viewModel.intenissueAdded) {
+                                    viewModel.listOfIssues.add(viewModel.intentIssue)
+                                    viewModel.listOfIssuesImage.add(R.drawable.battery__1_)
+                                    viewModel.selectedIndex = viewModel.listOfIssues.size - 1
+                                    viewModel.intenissueAdded = true
+                                }
+                            }
+                            .padding(10.dp)
+                            .background(brush = buttonGradient, shape = RoundedCornerShape(20.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        text = "Book RSA",
+                        style = TextStyle(
+                            color = Color.White,
+                            fontFamily = FontFamily(Font(R.font.manrope_bold))
+                        )
+                    )
+                }
+            }
+        }
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -76,6 +149,7 @@ fun SelectAnIssue(
                 text = "Select an issue or call us at ",
                 style = TextStyle(
                     color = Color.White,
+                    fontFamily = FontFamily(Font(R.font.manrope_semibold))
                 )
             )
             Spacer(modifier = Modifier.size(4.dp))
@@ -99,12 +173,16 @@ fun SelectAnIssue(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painter = painterResource(id = R.drawable.call), contentDescription = "", tint = Color.White)
+                    Icon(
+                        painter = painterResource(id = R.drawable.call),
+                        contentDescription = "",
+                        tint = Color.White
+                    )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
                         text = "1800056743", style = TextStyle(
                             color = Color.White,
-                            fontFamily = FontFamily(Font(R.font.metropolis))
+                            fontFamily = FontFamily(Font(R.font.manrope_semibold))
                         )
                     )
                 }
@@ -113,8 +191,8 @@ fun SelectAnIssue(
 
         Spacer(modifier = Modifier.size(10.dp))
         LazyRow() {
-            itemsIndexed(listOfIssues) { index, issue ->
-                issueBox(index, issue){
+            itemsIndexed(viewModel.listOfIssues) { index, issue ->
+                issueBox(index, issue, viewModel) {
                     onClick(it)
                 }
             }
@@ -123,26 +201,26 @@ fun SelectAnIssue(
 }
 
 @Composable
-private fun issueBox(index: Int, issue: String, onClick: (Int) -> Unit) {
-    var openDialog by remember { mutableStateOf(false) }
+private fun issueBox(index: Int, issue: String, viewModel: MainViewModel, onClick: (Int) -> Unit) {
+//    var openDialog by remember { mutableStateOf(false) }
 
-    if (openDialog) {
+    if (viewModel.openDialog) {
         AlertDialog(
-            onDismissRequest = { openDialog = false },
+            onDismissRequest = { viewModel.openDialog = false },
             confirmButton = {
                 Button(onClick = {
-                    selectedIndex = index
-                    executed = false
-                    processIndex = 0
-                    processStart = false
-                    listOfProcessExcuted.clear()
-                    openDialog = false
+                    viewModel.selectedIndex = index
+                    viewModel.executed = false
+                    viewModel.processIndex = 0
+                    viewModel.processStart = false
+                    viewModel.listOfProcessExcuted.clear()
+                    viewModel.openDialog = false
                 }) {
                     Text("Confirm")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { openDialog = false }) {
+                TextButton(onClick = { viewModel.openDialog = false }) {
                     Text("Dismiss")
                 }
             },
@@ -173,38 +251,31 @@ private fun issueBox(index: Int, issue: String, onClick: (Int) -> Unit) {
         .size(150.dp)
         .fillMaxWidth()
         .clickable {
-            if (processIndex == 0) {
-                selectedIndex = index
-                executed = false
-                processIndex = 0
-                listOfProcessExcuted.clear()
+            if (viewModel.processIndex == 0) {
+                viewModel.selectedIndex = index
+                viewModel.executed = false
+                viewModel.processIndex = 0
+                viewModel.listOfProcessExcuted.clear()
             } else {
-                openDialog = true
+                viewModel.openDialog = true
             }
         }
         .padding(horizontal = 10.dp, vertical = 5.dp)
         .background(color = Color(0xFF1D3354), shape = RoundedCornerShape(10.dp))
         .border(
-            width = 1.dp, color = if (selectedIndex == index) {
+            width = 1.dp, color = if (viewModel.selectedIndex == index) {
                 Color(0xFF1F57E7)
             } else {
                 Color.Transparent
             }, shape = RoundedCornerShape(10.dp)
         )) {
-        Spacer(
-            modifier = Modifier
-                .padding(10.dp)
-                .align(Alignment.TopEnd)
-                .size(15.dp)
-                .background(color = Color(0xFF0B1112), shape = CircleShape)
-        )
         Column(
             modifier = Modifier.padding(top = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 modifier = Modifier.size(70.dp),
-                painter = painterResource(id = listOfIssuesImage[index]),
+                painter = painterResource(id = viewModel.listOfIssuesImage[index]),
                 contentDescription = "",
                 contentScale = ContentScale.FillBounds
             )
@@ -214,7 +285,8 @@ private fun issueBox(index: Int, issue: String, onClick: (Int) -> Unit) {
                     .fillMaxWidth(),
                 text = issue, style = TextStyle(
                     color = Color.White,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontFamily = FontFamily(Font(R.font.manrope_bold))
                 )
             )
         }
