@@ -12,6 +12,7 @@ import com.example.infotainment_rsa.R
 class MainViewModel : ViewModel() {
 
     var openDialog by mutableStateOf(false)
+    var isLocationGranted by mutableStateOf(false)
     var lattiude by mutableDoubleStateOf(0.00)
     var longitutde by mutableDoubleStateOf(0.00)
     var selectedIndex by mutableIntStateOf(-1)

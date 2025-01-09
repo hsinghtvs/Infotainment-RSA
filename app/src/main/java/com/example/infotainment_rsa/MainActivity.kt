@@ -9,8 +9,10 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +36,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.infotainment_rsa.components.MapBox
 import com.example.infotainment_rsa.components.SelectAnIssue
@@ -62,6 +65,20 @@ private lateinit var viewModel: MainViewModel
 class MainActivity : ComponentActivity(), OnMapReadyCallback {
     private var currentLocation: Location? = null
     lateinit var locationManager: LocationManager
+    val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permission ->
+        val isFineLocationGranted =
+            permission[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val isCoarseLocationGranted =
+            permission[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+
+        if (isCoarseLocationGranted || isFineLocationGranted) {
+            viewModel.isLocationGranted = true
+        } else {
+            Toast.makeText(this, "Please Give the Location Access", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,7 +104,21 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                     }
 
                     val context = LocalContext.current
-                    val locationGranted = isLocationPermissionGranted(this)
+
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        requestLocationPermission()
+                    } else {
+                        viewModel.isLocationGranted = true
+                    }
+
                     locationManager =
                         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                     val hasGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
@@ -129,35 +160,36 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                         override fun onProviderDisabled(provider: String) {}
                     }
 
-                    if (hasGps) {
-                        if (ActivityCompat.checkSelfPermission(
-                                this, Manifest.permission.ACCESS_FINE_LOCATION
-                            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                                this, Manifest.permission.ACCESS_COARSE_LOCATION
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            return@Surface
+                    if (viewModel.isLocationGranted) {
+                        if (hasGps) {
+                            if (ActivityCompat.checkSelfPermission(
+                                    this, Manifest.permission.ACCESS_FINE_LOCATION
+                                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                                    this, Manifest.permission.ACCESS_COARSE_LOCATION
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                return@Surface
+                            }
+                            locationManager.requestLocationUpdates(
+                                LocationManager.GPS_PROVIDER, 5000, 0F, gpsLocationListener
+                            )
                         }
-                        locationManager.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER, 5000, 0F, gpsLocationListener
-                        )
+
+                        if (hasNetwork) {
+                            locationManager.requestLocationUpdates(
+                                LocationManager.NETWORK_PROVIDER, 5000, 0F, networkLocationListener
+                            )
+                        }
+
+                        val lastKnownLocationByGps =
+                            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                        lastKnownLocationByGps?.let { location ->
+                            val precision = DecimalFormat("0.0000")
+
+                            viewModel.lattiude = precision.format(location.latitude).toDouble()
+                            viewModel.longitutde = precision.format(location.longitude).toDouble()
+                        }
                     }
-
-                    if (hasNetwork) {
-                        locationManager.requestLocationUpdates(
-                            LocationManager.NETWORK_PROVIDER, 5000, 0F, networkLocationListener
-                        )
-                    }
-
-                    val lastKnownLocationByGps =
-                        locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                    lastKnownLocationByGps?.let { location ->
-                        val precision = DecimalFormat("0.0000")
-
-                        viewModel.lattiude = precision.format(location.latitude).toDouble()
-                        viewModel.longitutde = precision.format(location.longitude).toDouble()
-                    }
-
                     LaunchedEffect(key1 = viewModel.executed) {
                         if (viewModel.executed) {
                             while (viewModel.processIndex <= 3 && viewModel.processStart) {
@@ -187,7 +219,11 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                         )
                     )
 
-                    Box(modifier = Modifier.fillMaxSize().background(brush = mainBackGroundGradient)){
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(brush = mainBackGroundGradient)
+                    ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -228,6 +264,15 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    fun requestLocationPermission() {
+        requestPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
     }
 
     override fun onMapReady(mapplsMap: MapplsMap) {
@@ -295,7 +340,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         Log.d("Sudarshan API CALL ", "call APi")
         val okHttpClient = OkHttpClient()
         val request = Request.Builder()
-            .url("https://apis.mappls.com/advancedmaps/v1/4a0bbbe5ab800eca852f98bc67c7313b/rev_geocode?lat=${12.8946721}&lng=${77.60990}")
+            .url("https://apis.mappls.com/advancedmaps/v1/4a0bbbe5ab800eca852f98bc67c7313b/rev_geocode?lat=${lattiude}&lng=${longitutde}")
             .build()
 
         okHttpClient.newCall(request).enqueue(object : Callback {
@@ -327,23 +372,5 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
     }
 }
 
-private fun isLocationPermissionGranted(mainActivity: MainActivity): Boolean {
-    return if (ActivityCompat.checkSelfPermission(
-            mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-            mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        ActivityCompat.requestPermissions(
-            mainActivity, arrayOf(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ), 100
-        )
-        false
-    } else {
-        true
-    }
-}
 
 
