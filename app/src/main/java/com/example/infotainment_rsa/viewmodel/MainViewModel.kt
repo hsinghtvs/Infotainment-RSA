@@ -29,6 +29,7 @@ class MainViewModel : ViewModel() {
     var listOfServiceTimeValue = mutableStateListOf<String>()
     var intentIssue by mutableStateOf("")
     var intenissueAdded by mutableStateOf(false)
+    var closeApp by mutableStateOf(false)
 
     init {
         addListOfServiceTimeValue()

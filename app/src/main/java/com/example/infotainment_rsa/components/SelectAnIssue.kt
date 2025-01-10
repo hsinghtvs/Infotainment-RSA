@@ -67,7 +67,7 @@ fun SelectAnIssue(
         Spacer(modifier = Modifier.size(10.dp))
         Box(
             modifier = Modifier
-                .height(100.dp)
+                .height(80.dp)
                 .fillMaxWidth()
         ) {
             Image(

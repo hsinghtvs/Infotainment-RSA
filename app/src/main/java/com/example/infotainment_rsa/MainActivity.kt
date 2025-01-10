@@ -50,6 +50,11 @@ import com.mappls.sdk.maps.OnMapReadyCallback
 import com.mappls.sdk.maps.annotations.MarkerOptions
 import com.mappls.sdk.maps.camera.CameraPosition
 import com.mappls.sdk.maps.geometry.LatLng
+import io.ably.lib.realtime.AblyRealtime
+import io.ably.lib.realtime.Channel
+import io.ably.lib.realtime.ConnectionState
+import io.ably.lib.realtime.ConnectionStateListener
+import io.ably.lib.types.Message
 import kotlinx.coroutines.delay
 import okhttp3.Call
 import okhttp3.Callback
@@ -90,6 +95,34 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = Color.Black
                 ) {
+
+                    val ablyRealtime =
+                        AblyRealtime("S6aZ2g.ygPNpw:224H5s4OtKulkTgMAJcil0_6KSisRlTxCS2nzTGpQdo")
+                    ablyRealtime.connection.on(object : ConnectionStateListener {
+                        override fun onConnectionStateChanged(state: ConnectionStateListener.ConnectionStateChange?) {
+                            Log.d("ABLY", "New state is " + (state?.current?.name ?: "null"));
+                            when (state?.current) {
+                                ConnectionState.connected -> {
+                                    Log.d("ABLY", "Connected to Ably!")
+                                }
+
+                                ConnectionState.failed -> {
+                                    Log.d("ABLY", "Connected to Ably Failed!")
+                                }
+
+                                else -> {
+                                    Log.d("ABLY", "Connected to Ably Error!")
+                                }
+                            }
+                        }
+                    })
+                    val channel: Channel = ablyRealtime.channels.get("get-started")
+                    channel.subscribe("first", object : Channel.MessageListener {
+                        override fun onMessage(message: Message) {
+                            viewModel.intentIssue = message.data.toString()
+                            Log.d("ABLY", "New Message is ${viewModel.intentIssue}");
+                        }
+                    })
                     if (intent.getStringExtra("service") != null) {
                         viewModel.intentIssue = intent.getStringExtra("service").toString()
                     } else {
@@ -275,6 +308,13 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         )
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        if(viewModel.closeApp){
+            finish()
+        }
+    }
+
     override fun onMapReady(mapplsMap: MapplsMap) {
         val latLong: LatLng = LatLng(viewModel.lattiude, viewModel.longitutde)
         val markerOptions: MarkerOptions = MarkerOptions().position(latLong)
@@ -340,7 +380,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         Log.d("Sudarshan API CALL ", "call APi")
         val okHttpClient = OkHttpClient()
         val request = Request.Builder()
-            .url("https://apis.mappls.com/advancedmaps/v1/4a0bbbe5ab800eca852f98bc67c7313b/rev_geocode?lat=${lattiude}&lng=${longitutde}")
+            .url("https://apis.mappls.com/advancedmaps/v1/e1d6c41b7850e2e03f8c1e18edd9ccd7/rev_geocode?lat=28.5554&lng=77.04817")
             .build()
 
         okHttpClient.newCall(request).enqueue(object : Callback {

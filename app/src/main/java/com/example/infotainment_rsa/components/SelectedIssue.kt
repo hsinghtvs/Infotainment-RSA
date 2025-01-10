@@ -1,5 +1,6 @@
 package com.example.infotainment_rsa.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,6 +77,8 @@ fun selectedIssue(
                         viewModel.selectedIndex = -1
                     },
                 text = "Change Issue",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 style = TextStyle(
                     color = Color(0xFF5DE9FF),
                     fontFamily = FontFamily(Font(R.font.manrope_medium))
@@ -106,6 +109,8 @@ fun selectedIssue(
                 Text(
                     modifier = Modifier.weight(1f),
                     text = viewModel.listOfIssues[viewModel.selectedIndex],
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = TextStyle(
                         color = Color.White,
                         textAlign = TextAlign.Center,
@@ -248,6 +253,14 @@ fun selectedIssue(
             } else {
                 Process(modifier = Modifier.weight(1f), viewModel = viewModel)
             }
+        }
+    }
+
+    BackHandler {
+        if (viewModel.selectedIndex != -1) {
+            viewModel.selectedIndex = -1
+        } else {
+            viewModel.closeApp = true
         }
     }
 }

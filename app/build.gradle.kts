@@ -71,4 +71,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.0-alpha08")
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
     implementation("com.squareup.okhttp3:okhttp:3.4.1")
+    implementation("io.ably:ably-android:1.2.40")
+
 }
