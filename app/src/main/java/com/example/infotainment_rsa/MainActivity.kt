@@ -21,20 +21,29 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -47,6 +56,7 @@ import com.example.infotainment_rsa.viewmodel.MainViewModel
 import com.google.gson.Gson
 import com.mappls.sdk.maps.MapplsMap
 import com.mappls.sdk.maps.OnMapReadyCallback
+import com.mappls.sdk.maps.annotations.IconFactory
 import com.mappls.sdk.maps.annotations.MarkerOptions
 import com.mappls.sdk.maps.camera.CameraPosition
 import com.mappls.sdk.maps.geometry.LatLng
@@ -95,6 +105,53 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = Color.Black
                 ) {
+                    var deviceId by remember { mutableStateOf("") }
+                    val sharedPreferences = getSharedPreferences("RSA", MODE_PRIVATE)
+                    val addDeviceId = sharedPreferences.edit()
+                    val deviceIdPref = sharedPreferences.getString("deviceId", null)
+                    if (deviceIdPref == null) {
+                        viewModel.openDialogPre = true
+                        if(viewModel.openDialogPre) {
+                            Dialog(onDismissRequest = {
+                                addDeviceId.putString("deviceId", deviceId).apply()
+                                viewModel.openDialogPre = false
+                            }) {
+                                Column {
+                                    Box(
+                                        Modifier
+                                            .padding(10.dp)
+                                            .background(Color.White)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(10.dp)
+                                        ) {
+                                            TextField(
+                                                keyboardOptions = KeyboardOptions.Default.copy(
+                                                    keyboardType = KeyboardType.Number
+                                                ),
+                                                label = {
+                                                    Text(text = "Device ID")
+                                                },
+                                                value = deviceId,
+                                                onValueChange = {
+                                                    deviceId = it
+                                                })
+                                            Spacer(modifier = Modifier.size(10.dp))
+                                            Button(onClick = {
+                                                addDeviceId.putString("deviceId", deviceId)
+                                                viewModel.openDialogPre = false
+                                            }) {
+                                                Text(text = "Submit")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
 
                     val ablyRealtime =
                         AblyRealtime("S6aZ2g.ygPNpw:224H5s4OtKulkTgMAJcil0_6KSisRlTxCS2nzTGpQdo")
@@ -116,13 +173,18 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                             }
                         }
                     })
+
+
                     val channel: Channel = ablyRealtime.channels.get("get-started")
-                    channel.subscribe("first", object : Channel.MessageListener {
+                    channel.subscribe("${deviceIdPref}RSA", object : Channel.MessageListener {
                         override fun onMessage(message: Message) {
-                            viewModel.intentIssue = message.data.toString()
+                            viewModel.issueFromAndroid = message.data.toString()
                             Log.d("ABLY", "New Message is ${viewModel.intentIssue}");
                         }
                     })
+
+
+
                     if (intent.getStringExtra("service") != null) {
                         viewModel.intentIssue = intent.getStringExtra("service").toString()
                     } else {
@@ -264,7 +326,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                         ) {
                             Text(
                                 modifier = Modifier.padding(10.dp),
-                                text = "RSA Emergency Assistance",
+                                text = "Emergency Assistance",
                                 style = TextStyle(
                                     color = Color.White,
                                     fontFamily = FontFamily(Font(R.font.manrope_extrabold))
@@ -278,7 +340,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                                 ) {
                                     Spacer(modifier = Modifier.size(5.dp))
                                     MapBox(
-                                        Modifier.weight(2f), this@MainActivity,
+                                        Modifier.weight(1.5f), this@MainActivity,
                                         viewModel
                                     )
                                     Spacer(modifier = Modifier.size(5.dp))
@@ -310,14 +372,16 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        if(viewModel.closeApp){
+        viewModel.intentIssue = ""
+        viewModel.intenissueAdded = false
+        if (viewModel.closeApp) {
             finish()
         }
     }
 
     override fun onMapReady(mapplsMap: MapplsMap) {
-        val latLong: LatLng = LatLng(viewModel.lattiude, viewModel.longitutde)
-        val markerOptions: MarkerOptions = MarkerOptions().position(latLong)
+        val latLong: LatLng = LatLng(28.5554, 77.04817)
+        val markerOptions: MarkerOptions = MarkerOptions().position(latLong).icon(IconFactory.getInstance(this).fromResource(R.drawable.accident))
         var markerAdded by mutableStateOf(false)
         markerOptions.title = viewModel.areaName
         markerOptions.snippet = viewModel.address
@@ -334,8 +398,8 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         }
 
 
-        val latLongTechnician: LatLng = LatLng(viewModel.lattiude - 0.0005, viewModel.longitutde)
-        val markerOptionsTechnician: MarkerOptions = MarkerOptions().position(latLongTechnician)
+        val latLongTechnician: LatLng = LatLng(28.5554 - 0.0005, 77.04817)
+        val markerOptionsTechnician: MarkerOptions = MarkerOptions().position(latLongTechnician).icon(IconFactory.getInstance(this).fromResource(R.drawable.accident))
         var TechnicianmarkerAdded by mutableStateOf(false)
         if (viewModel.processIndex >= 2) {
             if (markers.size > 0) {
@@ -361,7 +425,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         }
         val cameraPosition = CameraPosition.Builder().target(
             LatLng(
-                viewModel.lattiude, viewModel.longitutde
+                28.5554, 77.04817
             )
         ).zoom(15.0).tilt(0.0).build()
         mapplsMap.cameraPosition = cameraPosition

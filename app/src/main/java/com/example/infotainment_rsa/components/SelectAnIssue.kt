@@ -58,7 +58,7 @@ fun SelectAnIssue(
         Text(
             modifier = Modifier
                 .padding(10.dp),
-            text = "We have identified an issue with your vehicle. Please book RSA for assistance.",
+            text = "We have identified an issue with your vehicle. Please Request Help for assistance.",
             style = TextStyle(
                 color = Color.White,
                 fontFamily = FontFamily(Font(R.font.manrope_extrabold))
@@ -95,16 +95,18 @@ fun SelectAnIssue(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Image(
-                        modifier = Modifier.size(20.dp),
-                        painter = painterResource(id = R.drawable.battery__1_),
-                        contentDescription = "",
-                        contentScale = ContentScale.FillBounds
-                    )
+                    if(viewModel.issueFromAndroid != "No issues Found") {
+                        Image(
+                            modifier = Modifier.size(20.dp),
+                            painter = painterResource(id = R.drawable.braekdown),
+                            contentDescription = "",
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
                     Text(
                         modifier = Modifier
                             .padding(10.dp),
-                        text = "Battery Jump Start",
+                        text = viewModel.issueFromAndroid,
                         style = TextStyle(
                             color = Color.White,
                             fontFamily = FontFamily(Font(R.font.manrope_extrabold))
@@ -124,34 +126,40 @@ fun SelectAnIssue(
                             Color(0xFFFFFFFF).copy(alpha = 1f)
                         )
                     )
-                    Text(
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .clickable {
-                                viewModel.intentIssue = "Battery Jump Start"
-                                if (!viewModel.intentIssue.isEmpty() && !viewModel.intenissueAdded) {
-                                    viewModel.listOfIssues.add(viewModel.intentIssue)
-                                    viewModel.listOfIssuesImage.add(R.drawable.battery__1_)
-                                    viewModel.selectedIndex = viewModel.listOfIssues.size - 1
-                                    viewModel.intenissueAdded = true
+                    if (viewModel.issueFromAndroid != "No issues Found") {
+                        Text(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .clickable {
+                                    viewModel.intentIssue = viewModel.issueFromAndroid
+                                    if (!viewModel.intentIssue.isEmpty() && !viewModel.intenissueAdded) {
+                                        viewModel.listOfIssues.add(viewModel.intentIssue)
+                                        viewModel.listOfIssuesImage.add(R.drawable.battery__1_)
+                                        viewModel.selectedIndex = viewModel.listOfIssues.size - 1
+                                        viewModel.intenissueAdded = true
+                                    }
                                 }
-                            }
-                            .background(
-                                color = Color(0xFFFFFFFF).copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(20.dp)
+                                .background(
+                                    color = Color(0xFFFFFFFF).copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .border(
+                                    1.dp,
+                                    brush = buttonStroke,
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .background(
+                                    brush = buttonGradient,
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            text = "Request Help",
+                            style = TextStyle(
+                                color = Color.White,
+                                fontFamily = FontFamily(Font(R.font.manrope_bold))
                             )
-                            .border(1.dp, brush = buttonStroke, shape = RoundedCornerShape(20.dp))
-                            .background(
-                                brush = buttonGradient,
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
-                        text = "Book RSA",
-                        style = TextStyle(
-                            color = Color.White,
-                            fontFamily = FontFamily(Font(R.font.manrope_bold))
                         )
-                    )
+                    }
                 }
             }
         }

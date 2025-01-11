@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.infotainment_rsa.R
@@ -107,9 +108,9 @@ fun selectedIssue(
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(0.8f),
                     text = viewModel.listOfIssues[viewModel.selectedIndex],
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = TextStyle(
                         color = Color.White,
@@ -179,6 +180,7 @@ fun selectedIssue(
                                 text = if (!viewModel.executed) "Confirm Request" else "Cancel Request",
                                 style = TextStyle(
                                     color = Color.White,
+                                    fontSize = 10.sp,
                                     fontFamily = FontFamily(Font(R.font.manrope_semibold))
                                 )
                             )
@@ -258,6 +260,7 @@ fun selectedIssue(
 
     BackHandler {
         if (viewModel.selectedIndex != -1) {
+            viewModel.issueFromAndroid = "No issues Found"
             viewModel.selectedIndex = -1
         } else {
             viewModel.closeApp = true

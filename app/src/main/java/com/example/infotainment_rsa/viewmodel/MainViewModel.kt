@@ -12,6 +12,7 @@ import com.example.infotainment_rsa.R
 class MainViewModel : ViewModel() {
 
     var openDialog by mutableStateOf(false)
+    var openDialogPre by mutableStateOf(false)
     var isLocationGranted by mutableStateOf(false)
     var lattiude by mutableDoubleStateOf(0.00)
     var longitutde by mutableDoubleStateOf(0.00)
@@ -30,6 +31,8 @@ class MainViewModel : ViewModel() {
     var intentIssue by mutableStateOf("")
     var intenissueAdded by mutableStateOf(false)
     var closeApp by mutableStateOf(false)
+    var issueFromAndroid by mutableStateOf("No issues Found")
+
 
     init {
         addListOfServiceTimeValue()
@@ -59,7 +62,7 @@ class MainViewModel : ViewModel() {
         listOfIssuesImage.add(R.drawable.braekdown)
         listOfIssuesImage.add(R.drawable.battery__1_)
         listOfIssuesImage.add(R.drawable.clutch)
-        listOfIssuesImage.add(R.drawable.lostkey)
+        listOfIssuesImage.add(R.drawable.engine)
         listOfIssuesImage.add(R.drawable.flat_tyre)
         listOfIssuesImage.add(R.drawable.fuel_consumption)
         listOfIssuesImage.add(R.drawable.braekdown)
@@ -71,7 +74,7 @@ class MainViewModel : ViewModel() {
         listOfIssues.add("Accident")
         listOfIssues.add("Battery Jump Start")
         listOfIssues.add("Clutch/Break Problem")
-        listOfIssues.add("Lost/ Loacked Keys")
+        listOfIssues.add("Engine")
         listOfIssues.add("Flat Tyre")
         listOfIssues.add("Fuel Problem")
         listOfIssues.add("BreakDown")
