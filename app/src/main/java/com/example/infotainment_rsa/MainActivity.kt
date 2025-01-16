@@ -2,17 +2,25 @@ package com.example.infotainment_rsa
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.VectorDrawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,11 +46,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -111,7 +121,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                     val deviceIdPref = sharedPreferences.getString("deviceId", null)
                     if (deviceIdPref == null) {
                         viewModel.openDialogPre = true
-                        if(viewModel.openDialogPre) {
+                        if (viewModel.openDialogPre) {
                             Dialog(onDismissRequest = {
                                 addDeviceId.putString("deviceId", deviceId).apply()
                                 viewModel.openDialogPre = false
@@ -154,7 +164,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
 
 
                     val ablyRealtime =
-                        AblyRealtime("S6aZ2g.ygPNpw:224H5s4OtKulkTgMAJcil0_6KSisRlTxCS2nzTGpQdo")
+                        AblyRealtime("QXuRaw.FDmgDA:DDyKIC14kCxFW0TQ1lY1WmnVLQvDh9sC5Zl4ZraFMXg")
                     ablyRealtime.connection.on(object : ConnectionStateListener {
                         override fun onConnectionStateChanged(state: ConnectionStateListener.ConnectionStateChange?) {
                             Log.d("ABLY", "New state is " + (state?.current?.name ?: "null"));
@@ -179,10 +189,30 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                     channel.subscribe("${deviceIdPref}RSA", object : Channel.MessageListener {
                         override fun onMessage(message: Message) {
                             viewModel.issueFromAndroid = message.data.toString()
+                            if (viewModel.issueFromAndroid == "Engine Overheating") {
+                                viewModel.listOfIssues.add("Engine Overheating")
+                                viewModel.issueAndroidImage = R.drawable.engine_overheat__new
+                                viewModel.confirmLoading = true
+                            } else if (viewModel.issueFromAndroid == "Battery") {
+                                viewModel.issueAndroidImage = R.drawable.battery__1_
+                            } else if (viewModel.issueFromAndroid == "Breakdown") {
+                                viewModel.issueAndroidImage = R.drawable.rsa
+                            } else if (viewModel.issueFromAndroid == "Engine") {
+                                viewModel.issueAndroidImage = R.drawable.engine__new
+                                viewModel.listOfIssues.add("Engine")
+                                viewModel.confirmLoading = true
+                            }
                             Log.d("ABLY", "New Message is ${viewModel.intentIssue}");
                         }
                     })
 
+                    LaunchedEffect(key1 = viewModel.issueFromAndroid == "Engine Overheating") {
+                        if (viewModel.confirmLoading) {
+                            delay(2000)
+                            viewModel.selectedIndex = viewModel.listOfIssues.size - 1
+                            viewModel.confirmLoading = false
+                        }
+                    }
 
 
                     if (intent.getStringExtra("service") != null) {
@@ -192,8 +222,37 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                     }
 
                     if (!viewModel.intentIssue.isEmpty() && !viewModel.intenissueAdded) {
-                        viewModel.listOfIssues.add(viewModel.intentIssue)
-                        viewModel.listOfIssuesImage.add(R.drawable.accident)
+                        if (viewModel.intentIssue == "Engine Issue") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.engine__new)
+                        } else if (viewModel.intentIssue == "Battery Issue") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.battery__1_)
+                        } else if (viewModel.intentIssue == "Engine Cooling Issue") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.coolant)
+                        } else if (viewModel.intentIssue == "Tyres Issue") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.flat_tyre)
+                        } else if (viewModel.intentIssue == "EPS") {
+                            viewModel.listOfIssues.add("Steering")
+                            viewModel.listOfIssuesImage.add(R.drawable.eps)
+                        } else if (viewModel.intentIssue == "Brake") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.hard_brakes)
+                        } else if (viewModel.intentIssue == "ABS") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.abs)
+                        } else if (viewModel.intentIssue == "Air Bag") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.airbag)
+                        } else if (viewModel.intentIssue == "Engine") {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.engine__new)
+                        } else {
+                            viewModel.listOfIssues.add(viewModel.intentIssue)
+                            viewModel.listOfIssuesImage.add(R.drawable.rsa_inactive)
+                        }
                         viewModel.selectedIndex = viewModel.listOfIssues.size - 1
                         viewModel.intenissueAdded = true
                     }
@@ -300,14 +359,14 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                     }
 
 
-                    var mainBackGroundGradient = Brush.linearGradient(
+                    val mainBackGroundGradient = Brush.linearGradient(
                         listOf(
                             Color(0xFF040A2F),
                             Color(0xFF060817)
                         )
                     )
 
-                    var backgroundGradient = Brush.linearGradient(
+                    val backgroundGradient = Brush.linearGradient(
                         listOf(
                             Color(0xFF040F36),
                             Color(0xFF030A29)
@@ -324,15 +383,26 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                                 .fillMaxSize()
                                 .background(brush = backgroundGradient)
                         ) {
-                            Text(
+                            Row(
                                 modifier = Modifier.padding(10.dp),
-                                text = "Emergency Assistance",
-                                style = TextStyle(
-                                    color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.manrope_extrabold))
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    modifier = Modifier.size(40.dp),
+                                    painter = painterResource(id = R.drawable.rsa_inactive),
+                                    contentDescription = ""
                                 )
-                            )
-                            Spacer(modifier = Modifier.size(10.dp))
+                                Spacer(modifier = Modifier.size(10.dp))
+                                Text(
+                                    modifier = Modifier.padding(10.dp),
+                                    text = "Emergency Assistance",
+                                    style = TextStyle(
+                                        fontSize = 22.sp,
+                                        color = Color.White,
+                                        fontFamily = FontFamily(Font(R.font.manrope_extrabold))
+                                    )
+                                )
+                            }
 
                             if (viewModel.selectedIndex != -1) {
                                 Row(
@@ -374,14 +444,48 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         super.onBackPressed()
         viewModel.intentIssue = ""
         viewModel.intenissueAdded = false
+        if (!viewModel.intentIssue.isEmpty()) {
+            viewModel.closeApp = true
+        }
         if (viewModel.closeApp) {
             finish()
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun getBitmap(vectorDrawable: VectorDrawable): Bitmap? {
+        val bitmap = Bitmap.createBitmap(
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
+        vectorDrawable.draw(canvas)
+        return bitmap
+    }
+
+    private fun getBitmap(context: Context, drawableId: Int): Bitmap? {
+        val drawable = ContextCompat.getDrawable(context, drawableId)
+        return if (drawable is BitmapDrawable) {
+            BitmapFactory.decodeResource(context.resources, drawableId)
+        } else if (drawable is VectorDrawable) {
+            getBitmap(drawable)
+        } else {
+            throw IllegalArgumentException("unsupported drawable type")
+        }
+    }
+
+
     override fun onMapReady(mapplsMap: MapplsMap) {
         val latLong: LatLng = LatLng(28.5554, 77.04817)
-        val markerOptions: MarkerOptions = MarkerOptions().position(latLong).icon(IconFactory.getInstance(this).fromResource(R.drawable.accident))
+        val bitmap = getBitmap(this, R.drawable.user_svg)
+
+
+        val markerOptions: MarkerOptions = MarkerOptions().position(latLong).icon(bitmap?.let {
+            IconFactory.getInstance(this).fromBitmap(
+                it
+            )
+        })
         var markerAdded by mutableStateOf(false)
         markerOptions.title = viewModel.areaName
         markerOptions.snippet = viewModel.address
@@ -398,14 +502,31 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         }
 
 
-        val latLongTechnician: LatLng = LatLng(28.5554 - 0.0005, 77.04817)
-        val markerOptionsTechnician: MarkerOptions = MarkerOptions().position(latLongTechnician).icon(IconFactory.getInstance(this).fromResource(R.drawable.accident))
+        var latLongTechnician: LatLng = LatLng(28.558355, 77.049653)
+        if (viewModel.processIndex == 2) {
+            latLongTechnician = LatLng(28.558355, 77.049653)
+        } else if (viewModel.processIndex == 3) {
+            latLongTechnician = LatLng(28.5554 - 0.0005, 77.04817)
+        }
+        val markerOptionsTechnician: MarkerOptions = MarkerOptions().position(latLongTechnician)
+            .icon(IconFactory.getInstance(this).fromResource(R.drawable.rsa))
         var TechnicianmarkerAdded by mutableStateOf(false)
         if (viewModel.processIndex >= 2) {
             if (markers.size > 0) {
                 for (i in 0 until markers.size) {
                     if (markers[i].title == "Technician") {
-                        TechnicianmarkerAdded = true
+                        if(viewModel.processIndex == 3){
+                            if (markers.size > 0) {
+                                for (i in 0 until markers.size) {
+                                    if (markers[i].title == "Technician") {
+                                        mapplsMap?.removeMarker(markers[i])
+                                    }
+                                }
+                            }
+                            TechnicianmarkerAdded = false
+                        } else {
+                            TechnicianmarkerAdded = true
+                        }
                     }
                 }
             }
@@ -427,7 +548,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
             LatLng(
                 28.5554, 77.04817
             )
-        ).zoom(15.0).tilt(0.0).build()
+        ).zoom(14.0).tilt(0.0).build()
         mapplsMap.cameraPosition = cameraPosition
 
         // get Location Address
@@ -444,7 +565,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         Log.d("Sudarshan API CALL ", "call APi")
         val okHttpClient = OkHttpClient()
         val request = Request.Builder()
-            .url("https://apis.mappls.com/advancedmaps/v1/e1d6c41b7850e2e03f8c1e18edd9ccd7/rev_geocode?lat=28.5554&lng=77.04817")
+            .url("https://apis.mappls.com/advancedmaps/v1/2d41f81e76cc1d89d9b6b4b844077d99/rev_geocode?lat=28.5554&lng=77.04817")
             .build()
 
         okHttpClient.newCall(request).enqueue(object : Callback {

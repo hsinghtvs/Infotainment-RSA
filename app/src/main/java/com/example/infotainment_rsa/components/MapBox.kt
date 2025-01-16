@@ -16,13 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.infotainment_rsa.MainActivity
@@ -34,7 +31,7 @@ import com.example.infotainment_rsa.viewmodel.MainViewModel
 fun MapBox(modifier: Modifier, mainActivity: MainActivity,viewModel: MainViewModel) {
     Column(modifier = modifier.padding(bottom = 10.dp)) {
         Text(
-            modifier = Modifier.padding(10.dp), text = "Confirm Your Location", style = TextStyle(
+            modifier = Modifier.padding(10.dp), text = "Vehicle Location", style = TextStyle(
                 color = Color.White,
                 fontFamily = FontFamily(Font(R.font.manrope_medium))
             )
@@ -104,49 +101,49 @@ fun MapBox(modifier: Modifier, mainActivity: MainActivity,viewModel: MainViewMod
                                     )
                                 )
                             }
-                            if (viewModel.processIndex >= 2) {
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1.4f)
-                                        .padding(horizontal = 10.dp),
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        modifier = Modifier.padding(
-                                            vertical = 10.dp
-                                        ),
-                                        text = "My Tvs Assistance",
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = TextStyle(
-                                            color = Color.Black,
-                                            fontSize = 10.sp
-
-                                        )
-                                    )
-                                    Text(
-                                        modifier = Modifier,
-                                        text = buildAnnotatedString {
-                                            append("Request ID : ")
-                                            withStyle(
-                                                style = SpanStyle(
-                                                    color = Color.Red,
-
-                                                    )
-                                            ) {
-                                                append("123456789")
-                                            }
-                                        },
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = TextStyle(
-                                            color = Color.Black,
-                                            fontSize = 10.sp
-
-                                        )
-                                    )
-                                }
-                            }
+//                            if (viewModel.processIndex >= 2) {
+//                                Column(
+//                                    modifier = Modifier
+//                                        .weight(1.4f)
+//                                        .padding(horizontal = 10.dp),
+//                                    verticalArrangement = Arrangement.Center
+//                                ) {
+//                                    Text(
+//                                        modifier = Modifier.padding(
+//                                            vertical = 10.dp
+//                                        ),
+//                                        text = "My Tvs Assistance",
+//                                        maxLines = 1,
+//                                        overflow = TextOverflow.Ellipsis,
+//                                        style = TextStyle(
+//                                            color = Color.Black,
+//                                            fontSize = 10.sp
+//
+//                                        )
+//                                    )
+//                                    Text(
+//                                        modifier = Modifier,
+//                                        text = buildAnnotatedString {
+//                                            append("Request ID : ")
+//                                            withStyle(
+//                                                style = SpanStyle(
+//                                                    color = Color.Red,
+//
+//                                                    )
+//                                            ) {
+//                                                append("123456789")
+//                                            }
+//                                        },
+//                                        maxLines = 1,
+//                                        overflow = TextOverflow.Ellipsis,
+//                                        style = TextStyle(
+//                                            color = Color.Black,
+//                                            fontSize = 10.sp
+//
+//                                        )
+//                                    )
+//                                }
+//                            }
                         }
                     }
                 }

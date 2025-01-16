@@ -95,7 +95,7 @@ fun IssueBox(index: Int, issue: String,viewModel: MainViewModel) {
                 viewModel.processIndex = 0
                 viewModel.listOfProcessExcuted.clear()
             } else {
-                openDialog = true
+//                openDialog = true
             }
         }
         .padding(horizontal = 10.dp, vertical = 5.dp)

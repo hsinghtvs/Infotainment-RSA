@@ -26,7 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.example.infotainment_rsa.R
 import com.example.infotainment_rsa.viewmodel.MainViewModel
@@ -49,33 +49,37 @@ fun SelectAnIssue(
         modifier = modifier,
     ) {
 
-        val callGradient = Brush.verticalGradient(
-            listOf(
-                Color(44, 44, 44, 100),
-                Color(236, 254, 238, 6)
-            )
-        )
-        Text(
-            modifier = Modifier
-                .padding(10.dp),
-            text = "We have identified an issue with your vehicle. Please Request Help for assistance.",
-            style = TextStyle(
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.manrope_extrabold))
-            )
-        )
+        Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (viewModel.issueFromAndroid != "No issues Found") {
+                Image(
+                    modifier = Modifier.size(20.dp),
+                    painter = painterResource(id = R.drawable.caution),
+                    contentDescription = "",
+                    contentScale = ContentScale.FillBounds
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(10.dp),
+                    text = viewModel.issueFromAndroid,
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color.White,
+                        fontFamily = FontFamily(Font(R.font.manrope_extrabold))
+                    )
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.size(10.dp))
         Box(
             modifier = Modifier
                 .height(80.dp)
                 .fillMaxWidth()
+                .background(Color(0xFF781D1D).copy(alpha = 0.8f))
         ) {
-            Image(
-                modifier = Modifier.fillMaxWidth(),
-                painter = painterResource(id = R.drawable.error_bg),
-                contentDescription = "",
-                contentScale = ContentScale.FillBounds
-            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -83,22 +87,17 @@ fun SelectAnIssue(
                     .align(Alignment.Center)
                     .padding(horizontal = 10.dp)
             ) {
-                Image(
-                    modifier = Modifier.align(Alignment.Center),
-                    painter = painterResource(id = R.drawable.button_error_background),
-                    contentDescription = ""
-                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.Start
                 ) {
-                    if(viewModel.issueFromAndroid != "No issues Found") {
+                    if (viewModel.issueFromAndroid != "No issues Found") {
                         Image(
-                            modifier = Modifier.size(20.dp),
-                            painter = painterResource(id = R.drawable.braekdown),
+                            modifier = Modifier.size(50.dp),
+                            painter = painterResource(id = viewModel.issueAndroidImage),
                             contentDescription = "",
                             contentScale = ContentScale.FillBounds
                         )
@@ -106,59 +105,67 @@ fun SelectAnIssue(
                     Text(
                         modifier = Modifier
                             .padding(10.dp),
-                        text = viewModel.issueFromAndroid,
+                        text = when (viewModel.issueFromAndroid) {
+                            "No issues Found" -> {
+                                "No issues Detected in Your Vehicle, You can Drive Safely"
+                            }
+                            "Battery" -> {
+                                "We have Detected an low Battery in your vehicle"
+                            }
+                            "Engine " -> {
+                                "We have Detected an issue in the Engine. Please don't start the car"
+                            }
+                            "Engine Overheating" -> {
+                                "We have Detected Engine OverHeating. Please don't start the car"
+                            }
+                            else -> {
+                                "We have Detected an issue with your ${viewModel.issueFromAndroid}"
+                            }
+                        },
                         style = TextStyle(
+                            fontSize = 16.sp,
                             color = Color.White,
                             fontFamily = FontFamily(Font(R.font.manrope_extrabold))
                         )
                     )
-                    var buttonGradient = Brush.verticalGradient(
-                        listOf(
-                            Color(0xFF18348E),
-                            Color(0xFF2A64E1),
-                        )
-                    )
-                    var buttonStroke = Brush.linearGradient(
-                        listOf(
-                            Color(0xFFFFFFFF).copy(alpha = 1f),
-                            Color(0xFFFFFFFF).copy(alpha = 0f),
-                            Color(0xFFFFFFFF).copy(alpha = 0f),
-                            Color(0xFFFFFFFF).copy(alpha = 1f)
-                        )
-                    )
+
                     if (viewModel.issueFromAndroid != "No issues Found") {
-                        Text(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .clickable {
-                                    viewModel.intentIssue = viewModel.issueFromAndroid
-                                    if (!viewModel.intentIssue.isEmpty() && !viewModel.intenissueAdded) {
-                                        viewModel.listOfIssues.add(viewModel.intentIssue)
-                                        viewModel.listOfIssuesImage.add(R.drawable.battery__1_)
-                                        viewModel.selectedIndex = viewModel.listOfIssues.size - 1
-                                        viewModel.intenissueAdded = true
+                        Column (
+                            modifier = Modifier.fillMaxWidth()
+                        ){
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .padding(10.dp)
+                                    .clickable {
+                                        if (!viewModel.issueFromAndroid.isEmpty() && !viewModel.intenissueAdded) {
+                                            viewModel.listOfIssues.add(viewModel.issueFromAndroid)
+                                            viewModel.selectedIndex =
+                                                viewModel.listOfIssues.size - 1
+                                            viewModel.intenissueAdded = true
+                                        }
                                     }
-                                }
-                                .background(
-                                    color = Color(0xFFFFFFFF).copy(alpha = 0.3f),
-                                    shape = RoundedCornerShape(20.dp)
+                                    .background(
+                                        color = Color(0xFFFFFFFF).copy(alpha = 0.3f),
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        brush = viewModel.buttonStroke,
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .background(
+                                        brush = viewModel.buttonGradient,
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                                text = "Request Help",
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.manrope_bold))
                                 )
-                                .border(
-                                    1.dp,
-                                    brush = buttonStroke,
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .background(
-                                    brush = buttonGradient,
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
-                            text = "Request Help",
-                            style = TextStyle(
-                                color = Color.White,
-                                fontFamily = FontFamily(Font(R.font.manrope_bold))
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -181,7 +188,7 @@ fun SelectAnIssue(
                 modifier = Modifier
                     .padding(10.dp)
                     .background(
-                        brush = callGradient, shape = RoundedCornerShape(
+                        brush = viewModel.callGradient, shape = RoundedCornerShape(
                             topStart = 30.dp, topEnd = 30.dp, bottomEnd = 30.dp, bottomStart = 30.dp
                         )
 
@@ -216,7 +223,7 @@ fun SelectAnIssue(
         Spacer(modifier = Modifier.size(10.dp))
         LazyRow() {
             itemsIndexed(viewModel.listOfIssues) { index, issue ->
-                issueBox(index, issue, viewModel) {
+                IssueBox(index, issue, viewModel) {
                     onClick(it)
                 }
             }
@@ -225,7 +232,7 @@ fun SelectAnIssue(
 }
 
 @Composable
-private fun issueBox(index: Int, issue: String, viewModel: MainViewModel, onClick: (Int) -> Unit) {
+private fun IssueBox(index: Int, issue: String, viewModel: MainViewModel, onClick: (Int) -> Unit) {
 //    var openDialog by remember { mutableStateOf(false) }
 
     if (viewModel.openDialog) {
@@ -281,7 +288,7 @@ private fun issueBox(index: Int, issue: String, viewModel: MainViewModel, onClic
                 viewModel.processIndex = 0
                 viewModel.listOfProcessExcuted.clear()
             } else {
-                viewModel.openDialog = true
+//                viewModel.openDialog = true
             }
         }
         .padding(horizontal = 10.dp, vertical = 5.dp)

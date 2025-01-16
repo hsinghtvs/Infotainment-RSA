@@ -20,12 +20,12 @@ fun MapComponent(modifier: Modifier = Modifier, mainActivity: MainActivity) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    MapplsAccountManager.getInstance().restAPIKey = "4a0bbbe5ab800eca852f98bc67c7313b"
-    MapplsAccountManager.getInstance().mapSDKKey = "4a0bbbe5ab800eca852f98bc67c7313b"
+    MapplsAccountManager.getInstance().restAPIKey = "2d41f81e76cc1d89d9b6b4b844077d99"
+    MapplsAccountManager.getInstance().mapSDKKey = "2d41f81e76cc1d89d9b6b4b844077d99"
     MapplsAccountManager.getInstance().atlasClientId =
-        "33OkryzDZsLz1faUP1SNrZP5d9Oo8yH_Ag8ko-lc_S-sMJj3F-VyMom7tOVYx2rP6KuofD3D900SGFrH5oNdIS7IyTIDUHf8"
+        "33OkryzDZsJ8dJjI-t4d2H_3CTEJwhqMdK2i-OJqw1ttDHIqWxnKtnyw6jZghgz2qyzCrHKkC8sKw50_2Rmwj165aOps_hUf"
     MapplsAccountManager.getInstance().atlasClientSecret =
-        "lrFxI-iSEg_CDKS_hj7cdc1set2FQlVUHt5tz5JT3oNPDd-cWNKCmYetPlaiZ7Do4Vuecep5QTQiGAjH2wNjl1caGjvrAVNmspaGWbF8T74="
+        "lrFxI-iSEg99lrIJ6Uwix23qKhphCgN_8QZDdXWtrKBajvIL3P5qOfd8d0itvPXK7ndQN5dEqpRWNSZ3UqzdHUX901-bOm5J99dghKPNsWE="
     Mappls.getInstance(LocalContext.current)
 
 
