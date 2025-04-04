@@ -3,10 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!--AIDL Permission - to retrieve data-->
+    <uses-permission android:name="com.mytvs.infotainmentcarhealthdigital.permission.ACCESS_DATA_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -26,12 +28,20 @@
             android:theme="@style/Theme.InfotainmentRSA">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT"/>
-                <action android:name="com.example.infotainment_rsa.fromCarHealth"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="com.nl.infotainment_rsa.fromCarHealth" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
+
+    <!--Queries AIDL-->
+    <queries>
+        <intent>
+            <action android:name="com.mytvs.infotainmentcarhealthdigital.RECEIVE_DATA" />
+        </intent>
+        <package android:name="com.mytvs.infotainmentcarhealthdigital" />
+    </queries>
 
 </manifest>

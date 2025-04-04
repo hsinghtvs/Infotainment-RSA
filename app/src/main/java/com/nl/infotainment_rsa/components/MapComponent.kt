@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa.components
+package com.nl.infotainment_rsa.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -9,7 +9,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.example.infotainment_rsa.MainActivity
+import com.nl.infotainment_rsa.MainActivity
 import com.mappls.sdk.maps.MapView
 import com.mappls.sdk.maps.Mappls
 import com.mappls.sdk.services.account.MapplsAccountManager

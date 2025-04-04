@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa.model
+package com.nl.infotainment_rsa.model
 
 data class AddressModel(
     val responseCode: Int,

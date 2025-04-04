@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa.components
+package com.nl.infotainment_rsa.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,9 +22,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.infotainment_rsa.MainActivity
-import com.example.infotainment_rsa.R
-import com.example.infotainment_rsa.viewmodel.MainViewModel
+import com.nl.infotainment_rsa.MainActivity
+import com.nl.infotainment_rsa.R
+import com.nl.infotainment_rsa.viewmodel.MainViewModel
 
 
 @Composable

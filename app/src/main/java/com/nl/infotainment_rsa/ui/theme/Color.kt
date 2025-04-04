@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa.ui.theme
+package com.nl.infotainment_rsa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

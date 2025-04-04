@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa
+package com.nl.infotainment_rsa
 
 import org.junit.Test
 

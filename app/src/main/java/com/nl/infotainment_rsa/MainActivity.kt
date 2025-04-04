@@ -1,9 +1,12 @@
-package com.example.infotainment_rsa
+package com.nl.infotainment_rsa
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,6 +18,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -57,12 +61,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import com.example.infotainment_rsa.components.MapBox
-import com.example.infotainment_rsa.components.SelectAnIssue
-import com.example.infotainment_rsa.components.selectedIssue
-import com.example.infotainment_rsa.model.AddressModel
-import com.example.infotainment_rsa.ui.theme.InfotainmentRSATheme
-import com.example.infotainment_rsa.viewmodel.MainViewModel
+import com.nl.infotainment_rsa.components.MapBox
+import com.nl.infotainment_rsa.components.SelectAnIssue
+import com.nl.infotainment_rsa.components.selectedIssue
+import com.nl.infotainment_rsa.model.AddressModel
+import com.nl.infotainment_rsa.ui.theme.InfotainmentRSATheme
+import com.nl.infotainment_rsa.viewmodel.MainViewModel
 import com.google.gson.Gson
 import com.mappls.sdk.maps.MapplsMap
 import com.mappls.sdk.maps.OnMapReadyCallback
@@ -70,6 +74,7 @@ import com.mappls.sdk.maps.annotations.IconFactory
 import com.mappls.sdk.maps.annotations.MarkerOptions
 import com.mappls.sdk.maps.camera.CameraPosition
 import com.mappls.sdk.maps.geometry.LatLng
+import com.nl.shared.DataInterface
 import io.ably.lib.realtime.AblyRealtime
 import io.ably.lib.realtime.Channel
 import io.ably.lib.realtime.ConnectionState
@@ -88,6 +93,24 @@ import java.text.DecimalFormat
 private lateinit var viewModel: MainViewModel
 
 class MainActivity : ComponentActivity(), OnMapReadyCallback {
+
+
+    private var mservice: DataInterface? = null;
+    private var mbound: Boolean = false;
+
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            mservice = DataInterface.Stub.asInterface(service)
+            mbound = true;
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            mservice = null;
+            mbound = false;
+        }
+
+    }
+
     private var currentLocation: Location? = null
     lateinit var locationManager: LocationManager
     val requestPermissionLauncher = registerForActivityResult(
@@ -103,6 +126,26 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         } else {
             Toast.makeText(this, "Please Give the Location Access", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (mbound) {
+            try {
+                val dataMap: HashMap<String, String> = HashMap<String, String>();
+                val result = mservice?.dataRequest(dataMap)
+                Log.d("SERVICE", "Service data shared " + result);
+
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(connection);
+        mservice = null;
     }
 
     @SuppressLint("MissingPermission")
@@ -429,6 +472,10 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
                 }
             }
         }
+
+        val intent = Intent("com.mytvs.infotainmentcarhealthdigital.RECEIVE_DATA");
+        intent.setPackage("com.mytvs.infotainmentcarhealthdigital");
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
     fun requestLocationPermission() {
@@ -515,7 +562,7 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
             if (markers.size > 0) {
                 for (i in 0 until markers.size) {
                     if (markers[i].title == "Technician") {
-                        if(viewModel.processIndex == 3){
+                        if (viewModel.processIndex == 3) {
                             if (markers.size > 0) {
                                 for (i in 0 until markers.size) {
                                     if (markers[i].title == "Technician") {

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.infotainment_rsa"
+    namespace = "com.nl.infotainment_rsa"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.infotainment_rsa"
+        applicationId = "com.nl.infotainment_rsa"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -38,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        aidl = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"

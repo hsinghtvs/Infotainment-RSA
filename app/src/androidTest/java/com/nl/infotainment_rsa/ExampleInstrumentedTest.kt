@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa
+package com.nl.infotainment_rsa
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.infotainment_rsa", appContext.packageName)
+        assertEquals("com.nl.infotainment_rsa", appContext.packageName)
     }
 }

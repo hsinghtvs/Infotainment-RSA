@@ -1,4 +1,4 @@
-package com.example.infotainment_rsa.components
+package com.nl.infotainment_rsa.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.infotainment_rsa.R
-import com.example.infotainment_rsa.viewmodel.MainViewModel
+import com.nl.infotainment_rsa.R
+import com.nl.infotainment_rsa.viewmodel.MainViewModel
 import java.util.Calendar
 
 @Composable
