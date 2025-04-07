@@ -74,7 +74,7 @@ import com.mappls.sdk.maps.annotations.IconFactory
 import com.mappls.sdk.maps.annotations.MarkerOptions
 import com.mappls.sdk.maps.camera.CameraPosition
 import com.mappls.sdk.maps.geometry.LatLng
-import com.nl.shared.DataInterface
+import com.mytvs.infotainmentcarhealthdigital.DataInterface
 import io.ably.lib.realtime.AblyRealtime
 import io.ably.lib.realtime.Channel
 import io.ably.lib.realtime.ConnectionState
@@ -93,6 +93,7 @@ import java.text.DecimalFormat
 private lateinit var viewModel: MainViewModel
 
 class MainActivity : ComponentActivity(), OnMapReadyCallback {
+
 
 
     private var mservice: DataInterface? = null;
@@ -142,8 +143,8 @@ class MainActivity : ComponentActivity(), OnMapReadyCallback {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         unbindService(connection);
         mservice = null;
     }
